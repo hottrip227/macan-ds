@@ -75,7 +75,7 @@ async def play(ctx, *, search):
     async with ctx.typing():
         try:
             await ctx.send(f"⏳ Ищу на районе: **{search}**...")
-            player = await YTDLSource.from_url(f"ytsearch:{search}", loop=bot.loop, stream=True)
+            player = await YTDLSource.from_url(f"scsearch:{search}", ...)
             
             # Проверка, играет ли уже что-то
             if ctx.voice_client.is_playing():
