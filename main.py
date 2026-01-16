@@ -34,15 +34,16 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.data = data
         self.title = data.get('title')
 
-    @classmethod
+   @classmethod
     async def from_url(cls, url, *, loop=None, stream=True):
         loop = loop or asyncio.get_event_loop()
         # Ищем через SoundCloud (scsearch), чтобы YouTube не банил
         data = await loop.run_in_executor(None, lambda: ytdl.extract_info(f"scsearch:{url}", download=not stream))
         if 'entries' in data: data = data['entries'][0]
-        filename = data['url']
-        exe = shutil.which("ffmpeg") or "ffmpeg"
-        return cls(discord.FFmpegPCMAudio(filename, executable=exe, options='-vn'), data=data)
+        options = "-vn -b:a 128k"
+        executable = shutil.which("ffmpeg") or "ffmpeg"
+        
+        return cls(discord.FFmpegPCMAudio(data['url'], executable=executable, options=options), data=data)
 
 # 4. Бот
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
