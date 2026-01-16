@@ -50,15 +50,15 @@ async def on_ready():
     print(f'✅ БОТ ЗАПУЩЕН: {bot.user.name}')
 
 @bot.command(name="брат")
-async def ask(ctx, *, question):
+async def ask(ctx, *, question): # Тут мы принимаем именно question
     try:
-        # Убрал лимит в 40 символов для ошибки, чтобы мы видели ВСЁ
         prompt = f"Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: "
-
-        ai_reply = get_ai_response(prompt + question)
-
-        await ctx.send(ai_reply)
-     except Exception as e:
+        
+        ai_reply = get_ai_response(prompt + question) 
+        
+        await ctx.send(ai_reply) 
+        
+    except Exception as e:
         print(f"❌ ОШИБКА GEMINI: {e}")
         await ctx.send(f"Связь оборвалась, брат. (Полный текст: {str(e)})")
 
