@@ -18,21 +18,27 @@ def keep_alive():
     t = Thread(target=lambda: app.run(host='0.0.0.0', port=10000))
     t.daemon = True
     t.start()
-
-# Новая логика ИИ через Mistral (работает четко)
+    
 def get_ai_response(text):
-    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+    # Меняем модель на более стабильную Llama-3
+    api_url = "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": f"<s>[INST] {text} [/INST]</s>", "parameters": {"max_new_tokens": 250}}
+    payload = {
+        "inputs": f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{text}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
+        "parameters": {"max_new_tokens": 250, "temperature": 0.7}
+    }
     
     try:
         response = requests.post(api_url, headers=headers, json=payload)
         if response.status_code == 200:
-            return response.json()[0]['generated_text'].split('[/INST]</s>')[-1].strip()
+            res_json = response.json()
+            # У Llama немного другой формат ответа, вытаскиваем чистый текст
+            full_text = res_json[0]['generated_text']
+            return full_text.split("<|start_header_id|>assistant<|end_header_id|>\n\n")[-1].strip()
         else:
-            return f"Брат, даже тут затык: {response.status_code}. Проверь токен HF_TOKEN."
+            return f"Брат, даже Llama выдала {response.status_code}. Проверь ключ HF_TOKEN в Render."
     except Exception as e:
-        return f"Траблы: {e}"
+        return f"Траблы со связью: {e}"
 
 # Бот
 intents = discord.Intents.default()
