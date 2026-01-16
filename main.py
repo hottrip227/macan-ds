@@ -1,35 +1,15 @@
-import os
 import discord
 from discord.ext import commands
-import google.generativeai as genai
-import yt_dlp
-import asyncio
+import os
+import requests
 from flask import Flask
 from threading import Thread
 
-# Настройка ключей
+# Настройки
 TOKEN = os.getenv("DISCORD_TOKEN")
 GEMINI_KEY = os.getenv("GEMINI_KEY")
 
-# Проверка в логах
-print("--- ПРОВЕРКА КЛЮЧЕЙ ---")
-print(f"DISCORD_TOKEN найден: {'ДА' if TOKEN else 'НЕТ'}")
-print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
-print("-----------------------")
-
-import requests
-
-def get_ai_response(text):
-    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key={GEMINI_KEY}"
-    payload = {
-        "contents": [{"parts": [{"text": text}]}]
-    }
-    response = requests.post(url, json=payload)
-    if response.status_code == 200:
-        return response.json()['candidates'][0]['content']['parts'][0]['text']
-    else:
-        return f"Ошибка API: {response.status_code} - {response.text}"
-
+# Простейший веб-сервер для Render
 app = Flask('')
 @app.route('/')
 def home(): return "Макан на связи!"
@@ -41,6 +21,20 @@ def keep_alive():
     t.daemon = True
     t.start()
 
+# Логика ИИ (пробуем версию v1beta с моделью gemini-pro - она самая живучая)
+def get_ai_response(text):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_KEY}"
+    payload = {"contents": [{"parts": [{"text": text}]}]}
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            return response.json()['candidates'][0]['content']['parts'][0]['text']
+        else:
+            return f"Ошибка API: {response.status_code}. Брат, походу ключ реально устал."
+    except Exception as e:
+        return f"Траблы со связью: {e}"
+
+# Настройка бота
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -50,58 +44,11 @@ async def on_ready():
     print(f'✅ БОТ ЗАПУЩЕН: {bot.user.name}')
 
 @bot.command(name="брат")
-async def ask(ctx, *, question): # Тут мы принимаем именно question
-    try:
-        prompt = f"Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: "
-        
-        ai_reply = get_ai_response(prompt + question) 
-        
-        await ctx.send(ai_reply) 
-        
-    except Exception as e:
-        print(f"❌ ОШИБКА GEMINI: {e}")
-        await ctx.send(f"Связь оборвалась, брат. (Полный текст: {str(e)})")
+async def ask(ctx, *, question):
+    prompt = "Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: "
+    reply = get_ai_response(prompt + question)
+    await ctx.send(reply)
 
-@bot.command()
-async def play(ctx, *, search):
-    if not ctx.author.voice:
-        return await ctx.send("Сначала в войс зайди, родной.")
-    
-    vc = ctx.voice_client
-    if not vc:
-        vc = await ctx.author.voice.channel.connect()
-
-    await ctx.send(f"🔍 Ищу для тебя: **{search}**...")
-    
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'noplaylist': True,
-        'quiet': True,
-        'no_warnings': True,
-        'default_search': 'ytsearch',
-        'source_address': '0.0.0.0',
-        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        }
-
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
-            url = info['url']
-            title = info['title']
-            ffmpeg_opts = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
-            vc.stop()
-            vc.play(discord.FFmpegPCMAudio(url, **ffmpeg_opts))
-            await ctx.send(f"🎶 Сейчас качает: **{title}**")
-    except Exception as e:
-        await ctx.send("Не удалось трек подтянуть.")
-        print(f"Ошибка музыки: {e}")
-
-@bot.command()
-async def stop(ctx):
-    if ctx.voice_client:
-        await ctx.voice_client.disconnect()
-        await ctx.send("Тишина в зале.")
-
-keep_alive()
-if TOKEN:
+if __name__ == "__main__":
+    keep_alive()
     bot.run(TOKEN)
