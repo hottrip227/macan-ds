@@ -7,7 +7,7 @@ from threading import Thread
 
 # Настройки
 TOKEN = os.getenv("DISCORD_TOKEN")
-HF_TOKEN = os.getenv("HF_TOKEN") # Твой новый ключ от Hugging Face
+GROQ_KEY = os.getenv("GROQ_API_KEY")
 
 # Веб-сервер для Render
 app = Flask('')
@@ -19,18 +19,23 @@ def keep_alive():
     t.daemon = True
     t.start()
 
-# Новая логика ИИ через Mistral (работает четко)
+# Логика ИИ через Groq (Llama-3 — самая стабильная)
 def get_ai_response(text):
-    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
-    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {"inputs": f"<s>[INST] {text} [/INST]</s>", "parameters": {"max_new_tokens": 250}}
-    
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {GROQ_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "llama3-8b-8192",
+        "messages": [
+            {"role": "system", "content": "Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей, отвечай на русском языке."},
+            {"role": "user", "content": text}
+        ]
+    }
     try:
-        response = requests.post(api_url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload)
         if response.status_code == 200:
-            return response.json()[0]['generated_text'].split('[/INST]</s>')[-1].strip()
+            return response.json()['choices'][0]['message']['content']
         else:
-            return f"Брат, даже тут пизда пошел кароче нахуй я уже заебался тебе помогать если честно даун ебаный: {response.status_code}. Проверь токен HF_TOKEN."
+            return f"Брат, даже Groq выдал {response.status_code}. Проверь ключ."
     except Exception as e:
         return f"Траблы: {e}"
 
@@ -45,8 +50,7 @@ async def on_ready():
 
 @bot.command(name="брат")
 async def ask(ctx, *, question):
-    prompt = "Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей, ответ на русском языке. Вопрос: "
-    reply = get_ai_response(prompt + question)
+    reply = get_ai_response(question)
     await ctx.send(reply)
 
 if __name__ == "__main__":
