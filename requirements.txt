@@ -2,3 +2,5 @@ discord.py
 google-generativeai
 yt-dlp
 flask
+discord.py[voice]
+yt-dlp
