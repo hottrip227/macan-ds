@@ -26,7 +26,17 @@ def get_ai_response(user_text):
     return res.json()['choices'][0]['message']['content'] if res.status_code == 200 else "Ошибка ИИ"
 
 # 3. Настройки музыки
-ytdl = yt_dlp.YoutubeDL({'format': 'bestaudio/best', 'noplaylist': True, 'quiet': True})
+ytdl_format_options = {
+    'format': 'bestaudio/best',
+    'noplaylist': True,
+    'quiet': True,
+    'no_warnings': True,
+    'default_search': 'ytsearch',
+    'source_address': '0.0.0.0', # Помогает обходить блокировку IP
+    'nocheckcertificate': True,
+    'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
 
 class YTDLSource(discord.PCMVolumeTransformer):
     def __init__(self, source, *, data, volume=0.5):
