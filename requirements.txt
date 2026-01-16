@@ -1,7 +1,6 @@
-discord.py[voice]
+discord.py[voice]==2.3.2
 yt-dlp
 flask
 requests
-PyNaCl
-asyncio
+PyNaCl==1.5.0
 static-ffmpeg
