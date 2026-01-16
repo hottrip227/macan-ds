@@ -1,5 +1,4 @@
-discord.py
+discord.py[voice]
 google-generativeai
 yt-dlp
 flask
-discord.py[voice]
