@@ -18,27 +18,21 @@ def keep_alive():
     t = Thread(target=lambda: app.run(host='0.0.0.0', port=10000))
     t.daemon = True
     t.start()
-    
+
+# Новая логика ИИ через Mistral (работает четко)
 def get_ai_response(text):
-    # Меняем модель на более стабильную Llama-3
-    api_url = "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct"
+    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
     headers = {"Authorization": f"Bearer {HF_TOKEN}"}
-    payload = {
-        "inputs": f"<|begin_of_text|><|start_header_id|>user<|end_header_id|>\n\n{text}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n",
-        "parameters": {"max_new_tokens": 250, "temperature": 0.7}
-    }
+    payload = {"inputs": f"<s>[INST] {text} [/INST]</s>", "parameters": {"max_new_tokens": 250}}
     
     try:
         response = requests.post(api_url, headers=headers, json=payload)
         if response.status_code == 200:
-            res_json = response.json()
-            # У Llama немного другой формат ответа, вытаскиваем чистый текст
-            full_text = res_json[0]['generated_text']
-            return full_text.split("<|start_header_id|>assistant<|end_header_id|>\n\n")[-1].strip()
+            return response.json()[0]['generated_text'].split('[/INST]</s>')[-1].strip()
         else:
-            return f"Брат, даже Llama выдала {response.status_code}. Проверь ключ HF_TOKEN в Render."
+            return f"Брат, даже тут пизда пошел кароче нахуй я уже заебался тебе помогать если честно даун ебаный: {response.status_code}. Проверь токен HF_TOKEN."
     except Exception as e:
-        return f"Траблы со связью: {e}"
+        return f"Траблы: {e}"
 
 # Бот
 intents = discord.Intents.default()
@@ -51,7 +45,7 @@ async def on_ready():
 
 @bot.command(name="брат")
 async def ask(ctx, *, question):
-    prompt = "Ты - репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос:, на русском языке. "
+    prompt = "Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей, ответ на русском языке. Вопрос: "
     reply = get_ai_response(prompt + question)
     await ctx.send(reply)
 
