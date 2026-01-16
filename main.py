@@ -18,7 +18,8 @@ print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
 print("-----------------------")
 
 genai.configure(api_key=GEMINI_KEY)
-model = genai.GenerativeModel('gemini-1.0-pro')
+# Ставим 1.5 Flash — она самая быстрая и бесплатная
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 app = Flask('')
 @app.route('/')
@@ -39,22 +40,21 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f'✅ БОТ ЗАПУЩЕН: {bot.user.name}')
 
-# КОМАНДА ДЛЯ ОБЩЕНИЯ
 @bot.command(name="брат")
 async def ask(ctx, *, question):
     try:
-        prompt = f"Ты - MACAN. Отвечай не слижком много и по пацански и по понятиям, если спрашивают что то позорное используй фразы: 0 мужского или много мужского, баба, писяет сидя, трус и тд иногда можешь вставлять отрывки треков макана в ответы, и изредка жалуйся что братья не помогли и ты 1 грустишь в армии. и еще своего добавляй чего то, так же можешь использовать маты иногда. Вопрос: {question}"
+        # Убрал лимит в 40 символов для ошибки, чтобы мы видели ВСЁ
+        prompt = f"Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: {question}"
         response = model.generate_content(prompt)
         await ctx.send(response.text)
     except Exception as e:
         print(f"❌ ОШИБКА GEMINI: {e}")
-        await ctx.send(f"Связь оборвалась, сука кабеля в армейке режут. (Ошибка: {str(e)[:40]})")
+        await ctx.send(f"Связь оборвалась, брат. (Полный текст: {str(e)})")
 
-# КОМАНДА ДЛЯ МУЗЫКИ
 @bot.command()
 async def play(ctx, *, search):
     if not ctx.author.voice:
-        return await ctx.send("Сначала в войс зайди, братик.")
+        return await ctx.send("Сначала в войс зайди, родной.")
     
     vc = ctx.voice_client
     if not vc:
@@ -62,29 +62,19 @@ async def play(ctx, *, search):
 
     await ctx.send(f"🔍 Ищу для тебя: **{search}**...")
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'noplaylist': True,
-        'quiet': True,
-    }
+    ydl_opts = {'format': 'bestaudio/best', 'noplaylist': True, 'quiet': True}
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(f"ytsearch:{search}", download=False)['entries'][0]
             url = info['url']
             title = info['title']
-            
-            # Настройки для стабильного звука
-            ffmpeg_options = {
-                'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5',
-                'options': '-vn',
-            }
-            
+            ffmpeg_opts = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
             vc.stop()
-            vc.play(discord.FFmpegPCMAudio(url, **ffmpeg_options))
+            vc.play(discord.FFmpegPCMAudio(url, **ffmpeg_opts))
             await ctx.send(f"🎶 Сейчас качает: **{title}**")
     except Exception as e:
-        await ctx.send("Не удалось трек подтянуть, что-то с ссылкой.")
+        await ctx.send("Не удалось трек подтянуть.")
         print(f"Ошибка музыки: {e}")
 
 @bot.command()
