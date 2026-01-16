@@ -18,8 +18,12 @@ print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
 print("-----------------------")
 
 genai.configure(api_key=GEMINI_KEY)
-# Ставим 1.5 Flash — она самая быстрая и бесплатная
-model = genai.GenerativeModel('gemini-1.5-flash')
+genai.configure(api_key=GEMINI_KEY, transport='rest') 
+model = genai.GenerativeModel(
+    model_name='gemini-1.5-flash',
+    generation_config={"typical_p": 0.9}
+)
+
 
 app = Flask('')
 @app.route('/')
