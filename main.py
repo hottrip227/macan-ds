@@ -63,14 +63,14 @@ async def play(ctx, *, search):
         vc = await ctx.author.voice.channel.connect()
 
     await ctx.send(f"🔍 Ищу для тебя: **{search}**...")
-
-  ydl_opts = {
+    
+    ydl_opts = {
         'format': 'bestaudio/best',
         'noplaylist': True,
         'quiet': True,
         'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'referer': 'https://www.google.com/',
-    }
+        }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
