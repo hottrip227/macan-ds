@@ -2,3 +2,4 @@ discord.py[voice]
 yt-dlp
 flask
 google-generativeai==0.7.2
+PyNaCl
