@@ -31,6 +31,16 @@ def get_ai_response(user_text):
     return f"Ошибка {res.status_code}: {res.text[:100]}"
 
 # 3. Настройки музыки
+# Попробуем заставить бота искать ffmpeg везде
+import shutil
+FFMPEG_EXE = shutil.which("ffmpeg") or "ffmpeg" 
+
+# Обнови свои ffmpeg_options вот так:
+ffmpeg_options = {
+    'options': '-vn',
+    'executable': FFMPEG_EXE # Добавляем путь к движку
+}
+
 ytdl_format_options = {'format': 'bestaudio/best', 'noplaylist': True}
 ffmpeg_options = {'options': '-vn'}
 ytdl = yt_dlp.YoutubeDL(ytdl_format_options)
