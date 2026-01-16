@@ -3,6 +3,7 @@ from discord.ext import commands
 import os, requests
 from flask import Flask
 from threading import Thread
+import asyncio
 
 # 1. Железобетонный веб-сервер для Render
 app = Flask('')
