@@ -18,7 +18,7 @@ print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
 print("-----------------------")
 
 genai.configure(api_key=GEMINI_KEY, transport='rest')
-model = genai.GenerativeModel(model_name='gemini-1.5-flash')
+model = genai.GenerativeModel(model_name='gemini-1.0-pro')
 
 
 app = Flask('')
