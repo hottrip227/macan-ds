@@ -7,45 +7,45 @@ from threading import Thread
 
 # Настройки
 TOKEN = os.getenv("DISCORD_TOKEN")
-GEMINI_KEY = os.getenv("GEMINI_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN") # Твой новый ключ от Hugging Face
 
-# Простейший веб-сервер для Render
+# Веб-сервер для Render
 app = Flask('')
 @app.route('/')
 def home(): return "Макан на связи!"
 
-def run_web(): app.run(host='0.0.0.0', port=10000)
-
 def keep_alive():
-    t = Thread(target=run_web)
+    t = Thread(target=lambda: app.run(host='0.0.0.0', port=10000))
     t.daemon = True
     t.start()
 
-# Логика ИИ (пробуем версию v1beta с моделью gemini-pro - она самая живучая)
+# Новая логика ИИ через Mistral (работает четко)
 def get_ai_response(text):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key={GEMINI_KEY}"
-    payload = {"contents": [{"parts": [{"text": text}]}]}
+    api_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+    headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+    payload = {"inputs": f"<s>[INST] {text} [/INST]</s>", "parameters": {"max_new_tokens": 250}}
+    
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(api_url, headers=headers, json=payload)
         if response.status_code == 200:
-            return response.json()['candidates'][0]['content']['parts'][0]['text']
+            return response.json()[0]['generated_text'].split('[/INST]</s>')[-1].strip()
         else:
-            return f"Ошибка API: {response.status_code}. Брат, походу ключ реально устал."
+            return f"Брат, даже тут затык: {response.status_code}. Проверь токен HF_TOKEN."
     except Exception as e:
-        return f"Траблы со связью: {e}"
+        return f"Траблы: {e}"
 
-# Настройка бота
+# Бот
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'✅ БОТ ЗАПУЩЕН: {bot.user.name}')
+    print(f'✅ МАКАН В ЗДАНИИ: {bot.user.name}')
 
 @bot.command(name="брат")
 async def ask(ctx, *, question):
-    prompt = "Ты репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: "
+    prompt = "Ты - репер MACAN. Отвечай не слижком много, отвечай по пацански и иногда по понятиям, если спрашивают что то позорное то добавляй фразы: 0 мужского или много мужского, баба, писяешь сидя, женя про доту иногда можешь вставлять отрывки треков макана в ответы, можешь иногда использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос:, на русском языке. "
     reply = get_ai_response(prompt + question)
     await ctx.send(reply)
 
