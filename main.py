@@ -17,11 +17,9 @@ print(f"DISCORD_TOKEN найден: {'ДА' if TOKEN else 'НЕТ'}")
 print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
 print("-----------------------")
 
-genai.configure(api_key=GEMINI_KEY)
 genai.configure(api_key=GEMINI_KEY, transport='rest') 
 model = genai.GenerativeModel(
     model_name='gemini-1.5-flash',
-    generation_config={"typical_p": 0.9}
 )
 
 
@@ -66,7 +64,13 @@ async def play(ctx, *, search):
 
     await ctx.send(f"🔍 Ищу для тебя: **{search}**...")
 
-    ydl_opts = {'format': 'bestaudio/best', 'noplaylist': True, 'quiet': True}
+  ydl_opts = {
+        'format': 'bestaudio/best',
+        'noplaylist': True,
+        'quiet': True,
+        'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'referer': 'https://www.google.com/',
+    }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
