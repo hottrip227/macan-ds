@@ -45,15 +45,15 @@ class YTDLSource(discord.PCMVolumeTransformer):
         self.title = data.get('title')
 
     @classmethod
-    async def from_url(cls, url, *, loop=None, stream=True):
-        loop = loop or asyncio.get_event_loop()
-        # Ищем инфу о треке
-        data = await loop.run_in_executor(None, lambda: ytdl.extract_info(url, download=not stream))
-        if 'entries' in data: data = data['entries'][0]
-        filename = data['url']
-        # Прописываем путь к ffmpeg явно
-        executable = shutil.which("ffmpeg") or "ffmpeg"
-        return cls(discord.FFmpegPCMAudio(filename, executable=executable, options='-vn'), data=data)
+async def from_url(cls, url, *, loop=None, stream=True, search=None): # Добавили search в конец
+    loop = loop or asyncio.get_event_loop()
+    # Используем SoundCloud поиск (scsearch), чтобы не банил YouTube
+    data = await loop.run_in_executor(None, lambda: ytdl.extract_info(f"scsearch:{url}", download=not stream))
+    if 'entries' in data:
+        data = data['entries'][0]
+    filename = data['url']
+    executable = shutil.which("ffmpeg") or "ffmpeg"
+    return cls(discord.FFmpegPCMAudio(filename, executable=executable, options='-vn'), data=data)
 
 # 4. Бот
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
@@ -67,24 +67,22 @@ async def play(ctx, *, search):
     if not ctx.author.voice:
         return await ctx.send("Брат, зайди в войс сначала!")
     
-    # Пытаемся зайти в канал
     if not ctx.voice_client:
         await ctx.author.voice.channel.connect()
-        await ctx.send("✅ Залетел в канал.")
     
     async with ctx.typing():
         try:
-            await ctx.send(f"⏳ Ищу на районе: **{search}**...")
-            player = await YTDLSource.from_url(f"scsearch:{search}", ...)
+            await ctx.send(f"⏳ Ищу на SoundCloud: **{search}**...")
+            # Теперь передаем аргументы правильно, без лишних запятых
+            player = await YTDLSource.from_url(search, loop=bot.loop, stream=True)
             
-            # Проверка, играет ли уже что-то
             if ctx.voice_client.is_playing():
                 ctx.voice_client.stop()
                 
             ctx.voice_client.play(player)
             await ctx.send(f"🔊 Наваливаю: **{player.title}**")
         except Exception as e:
-            await ctx.send(f"❌ Трабл: {str(e)[:100]}") # Теперь он БУДЕТ писать ошибку!
+            await ctx.send(f"❌ Трабл: {str(e)[:100]}")
 
 @bot.command(name="стоп")
 async def stop(ctx):
