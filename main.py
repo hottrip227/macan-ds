@@ -17,9 +17,18 @@ print(f"DISCORD_TOKEN найден: {'ДА' if TOKEN else 'НЕТ'}")
 print(f"GEMINI_KEY найден: {'ДА' if GEMINI_KEY else 'НЕТ'}")
 print("-----------------------")
 
-genai.configure(api_key=GEMINI_KEY, transport='rest')
-model = genai.GenerativeModel(model_name='gemini-1.0-pro')
+import requests
 
+def get_ai_response(text):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_KEY}"
+    payload = {
+        "contents": [{"parts": [{"text": text}]}]
+    }
+    response = requests.post(url, json=payload)
+    if response.status_code == 200:
+        return response.json()['candidates'][0]['content']['parts'][0]['text']
+    else:
+        return f"Ошибка API: {response.status_code} - {response.text}"
 
 app = Flask('')
 @app.route('/')
