@@ -55,8 +55,13 @@ async def ask(ctx, *, question):
 async def play(ctx, *, search):
     if not ctx.author.voice:
         return await ctx.send("Зайди в войс сначала!")
-    if not ctx.voice_client:
+    if ctx.voice_client:
+        await ctx.voice_client.disconnect()
+    try:
         await ctx.author.voice.channel.connect()
+        await ctx.send("✅ Залетел по-новой.")
+    except Exception as e:
+        return await ctx.send(f"❌ Не могу зайти: {str(e)}")
     
     async with ctx.typing():
         try:
