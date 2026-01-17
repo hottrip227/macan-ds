@@ -1,8 +1,5 @@
 FROM python:3.10
 
-# Устанавливаем ffmpeg для работы музыки
-pip install -q -U google-genai
-
 # Создаем рабочую папку
 WORKDIR /app
 
