@@ -30,13 +30,13 @@ MACAN_PHOTOS = ["1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png"]
 @bot.event
 async def on_ready():
     print(f" Брат Макан в сети как {bot.user}")
-
+    
 @bot.command(name="брат")
 async def ask(ctx, *, question):
-    # Сначала получаем ответ от ИИ
     response = get_ai_response(question)
     await ctx.send(response)
     
+    # Эти строки должны иметь ТОТ ЖЕ отступ, что и await выше!
     if random.random() < 0.3:
         photo_name = random.choice(MACAN_PHOTOS)
         if os.path.exists(photo_name):
