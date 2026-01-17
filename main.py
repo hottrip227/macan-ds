@@ -4,7 +4,7 @@ import os, requests, asyncio, yt_dlp, shutil
 from flask import Flask
 from threading import Thread
 import static_ffmpeg
-import radnom
+import random
 
 # 1. Веб-сервер для Render
 app = Flask('')
