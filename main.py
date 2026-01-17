@@ -4,7 +4,6 @@ import os, requests, asyncio, yt_dlp, shutil
 from flask import Flask
 from threading import Thread
 import static_ffmpeg
-import random
 
 # 1. Веб-сервер для Render
 app = Flask('')
@@ -30,10 +29,6 @@ def get_ai_response(user_text):
 
 # 4. Бот
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
-
-@bot.command(name="брат")
-async def ask(ctx, *, question):
-    await ctx.send(get_ai_response(question))
 
 @bot.command(name="брат")
 async def ask(ctx, *, question):
