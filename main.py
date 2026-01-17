@@ -38,9 +38,13 @@ async def ask(ctx, *, question):
 import random
 
 MACAN_PHOTOS = [
-    "1.jpg", 
-    "2.jpg", 
-    "3.jpg" # Добавь сюда имена всех файлов, что залил на GitHub
+    "1.png", 
+    "2.png", 
+    "3.png",
+    "4.png",
+    "5.png",
+    "6.png",
+    "7.png"
 ]
 
 @bot.event
