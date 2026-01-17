@@ -31,22 +31,16 @@ MACAN_PHOTOS = ["1.png", "2.png", "3.png", "4.png", "5.png", "6.png", "7.png"]
 async def on_ready():
     print(f" Брат Макан в сети как {bot.user}")
 
-@bot.event
-async def on_message(message):
-    if message.author == bot.user: return
-
-    # Шанс 30% на фото
+@bot.command(name="брат")
+async def ask(ctx, *, question):
+    # Сначала получаем ответ от ИИ
+    response = get_ai_response(question)
+    await ctx.send(response)
+    
     if random.random() < 0.3:
         photo_name = random.choice(MACAN_PHOTOS)
         if os.path.exists(photo_name):
             with open(photo_name, 'rb') as f:
-                await message.channel.send(file=discord.File(f))
-    
-    await bot.process_commands(message)
-
-# Команда !брат только ОДИН раз, чтобы не было CommandRegistrationError
-@bot.command(name="брат")
-async def ask(ctx, *, question):
-    await ctx.send(get_ai_response(question))
+                await ctx.send(file=discord.File(f))
 
 bot.run(os.getenv("DISCORD_TOKEN"))
