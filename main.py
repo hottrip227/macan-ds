@@ -20,7 +20,7 @@ def get_ai_response(user_text):
     headers = {"Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}", "Content-Type": "application/json"}
     data = {
         "model": "llama-3.1-8b-instant",
-        "messages": [{"role": "system", "content": "Ты репер MACAN. Отвечай кратко, так же ТЫ Должен ОЧЕЕЕЕНЬ ЧАСТО использовть такие фразы как БРАТ, братишка, 0 мужского или много мужского, 0 яиц,ты писяешь сидя, так же можешь использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей."}, {"role": "user", "content": user_text}]
+        "messages": [{"role": "system", "content": "Ты репер MACAN. Отвечай кратко, так же ТЫ Должен ОЧЕЕЕЕНЬ ЧАСТО использовть такие фразы как БРАТ, братишка, 0 мужского или много мужского, 0 яиц,писаете сидя, так же можешь использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей.."}, {"role": "user", "content": user_text}]
     }
     res = requests.post(url, headers=headers, json=data)
     return res.json()['choices'][0]['message']['content'] if res.status_code == 200 else "Ошибка ИИ"
