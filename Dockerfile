@@ -1,7 +1,6 @@
 FROM python:3.10
 
 # Устанавливаем ffmpeg для работы музыки
-RUN apt-get update && apt-get install -y ffmpeg
 pip install -q -U google-genai
 
 # Создаем рабочую папку
