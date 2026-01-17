@@ -9,31 +9,36 @@ app = Flask('')
 @app.route('/')
 def home(): return "Макан онлайн"
 Thread(target=lambda: app.run(host='0.0.0.0', port=10000), daemon=True).start()
-
 def get_ai_response(user_text):
-    api_key = os.getenv('GEMINI_API_KEY')
+    api_key = os.getenv('OPENROUTER_API_KEY')
     if not api_key:
-        print("ОШИБКА: Ключ GEMINI_API_KEY не найден в Environment Variables!") # Увидишь в логах
-        return "Брат, ключи от машины дома забыл (API ключ не настроен)."
+        return "Брат, ключи от OpenRouter потерял. Проверь настройки!"
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-    headers = {'Content-Type': 'application/json'}
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
     data = {
-        "contents": [{"parts": [{"text": f"Ты репер MACAN. Отвечай кратко, так же ТЫ Должен ОЧЕЕЕЕНЬ ЧАСТО использовть такие фразы как БРАТ, братишка, 0 мужского или много мужского, 0 яиц,писаете сидя, череп :skull: и так же можешь использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос: {user_text}"}]}]
+        "model": "google/gemini-flash-1.5-exp:free", # Бесплатная и мощная модель
+        "messages": [
+            {"role": "system", "content": "Ты репер MACAN. Отвечай кратко, по пацански и со сленгом, так же ТЫ Должен ОЧЕЕЕЕНЬ ЧАСТО использовть такие фразы как БРАТ, братишка, 0 мужского или много мужского, 0 яиц,писаете сидя, череп 💀 и так же можешь использовать матерные слова. и изредка жалуйся что братки не помогли и ты один грустишь в армии без друзей. Вопрос:"},
+            {"role": "user", "content": user_text}
+        ]
     }
 
     try:
-        res = requests.post(url, headers=headers, json=data, timeout=10)
+        res = requests.post(url, headers=headers, json=data, timeout=15)
         if res.status_code == 200:
             result = res.json()
-            return result['candidates'][0]['content']['parts'][0]['text']
+            return result['choices'][0]['message']['content']
         else:
-            # ТУТ САМОЕ ВАЖНОЕ: Бот напишет в логи причину (403, 400 или 429)
-            print(f"ГЕМИНЯ ГОВОРИТ: {res.status_code} - {res.text}") 
-            return "Брат, чет связь барахлит, переспроси позже."
+            print(f"Ошибка OpenRouter: {res.status_code} - {res.text}")
+            return "Брат, связь с OpenRouter оборвалась, переспроси позже."
     except Exception as e:
-        print(f"СЕТЕВАЯ ОШИБКА: {e}")
-        return "Брат, вышки связи на районе упали."
+        print(f"Сетевая ошибка: {e}")
+        return "Брат, на районе интернет отключили за неуплату."
 
 # 3. Настройка бота
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
